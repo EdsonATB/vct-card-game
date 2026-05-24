@@ -1,0 +1,34 @@
+import asyncpg
+
+
+_pool: asyncpg.Pool | None = None
+
+
+async def create_pool(database_url: str) -> None:
+    global _pool
+
+    if _pool is not None:
+        return
+
+    _pool = await asyncpg.create_pool(
+        database_url,
+        ssl="require",
+        statement_cache_size=0,
+    )
+
+
+def get_pool() -> asyncpg.Pool:
+    if _pool is None:
+        raise RuntimeError("A pool do banco ainda nao foi inicializada.")
+
+    return _pool
+
+
+async def close_pool() -> None:
+    global _pool
+
+    if _pool is None:
+        return
+
+    await _pool.close()
+    _pool = None
